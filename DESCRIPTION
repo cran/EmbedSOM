@@ -1,5 +1,5 @@
 Package: EmbedSOM
-Version: 1.9
+Version: 1.9.1
 Title: Fast Embedding Guided by Self-Organizing Map
 Authors@R: c(person("Mirek", "Kratochvil",
                     role = c("aut", "cre"),
@@ -29,7 +29,7 @@ Encoding: UTF-8
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2019-08-19 08:14:27 UTC; exa
+Packaged: 2019-08-19 13:50:42 UTC; exa
 Author: Mirek Kratochvil [aut, cre],
   Sofie Van Gassen [cph],
   Britt Callebaut [cph],
@@ -37,4 +37,4 @@ Author: Mirek Kratochvil [aut, cre],
   Ron Wehrens [cph]
 Maintainer: Mirek Kratochvil <exa.exa@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-08-19 09:50:02 UTC
+Date/Publication: 2019-08-19 18:00:17 UTC
