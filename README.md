@@ -81,9 +81,16 @@ EmbedSOM::PlotEmbed(e1, fsom=fs1, xdim=10, ydim=10)
 
 #### What are the color parameters of PlotEmbed?
 
-Please see documentation in `?PlotEmbed`. By default, `PlotEmbed` plots a simple colored representation of cell density. If supplied with a FCS column name (or number), it uses the `matlab2` color scale to plot a single marker expression. Parameters `red`, `green` and `blue` can be used to set column names (or numbers) to mix a RGB color from marker expressions.
+Please see documentation in `?PlotEmbed`. By default, `PlotEmbed` plots a simple colored representation of cell density. If supplied with a FCS column name (or number), it uses the a color scale similar to ColorBrewer's RdYlBu (with improvements for transparent stuff) to plot a single marker expression. Parameters `red`, `green` and `blue` can be used to set column names (or numbers) to mix RGB color from marker expressions.
 
 `PlotEmbed` optionally accepts parameter `col` with a vector of R colors, which, if provided, is just forwarded to the internal `plot` function. For example, use `col=rgb(0,0,0,0.2)` for transparent black cells.
+
+**New!** if you need to mix more nicer colors than just the default RGB, use `ExprColors`.
+
+#### How to plot the gazillions of the tiny points faster?
+#### How to reduce size (and loading time) of the PDFs that contain scatterplots?
+
+Use scattermore: https://github.com/exaexa/scattermore
 
 #### How to select cell subsets from the embedding?
 
@@ -113,7 +120,7 @@ There is now support for 3D SOM grids and 3D embedding. You need the customized 
 
 ```r
 map <- EmbedSOM::SOM(someData, xdim=8, ydim=8, zdim=8)
-embed <- EmbedSOM::EmbedSOM(data=someData, map=map)
+e <- EmbedSOM::EmbedSOM(data=someData, map=map)
 ```
 
 `PlotEmbed` and other functions do not work on 3D `embed` data, but you may use other libraries to display the plots. For example the `plot3D` library:
@@ -127,3 +134,21 @@ Interactive rotatable and zoomable plots can be viewed using the `rgl` library:
 ```r
 rgl::points3d(x=e[,1], y=e[,2], z=e[,3])
 ```
+
+#### What to do if embedding takes too long?
+
+You may use parallelized versions of the algorithms. Several functions (`SOM`, `GQTSOM`, `EmbedSOM`) support setting `parallel=T`, which enables parallel processing; you may fine-tune the number of used CPUs by setting e.g. `threads=5`.
+
+For SOM training, you need to explicitly switch to the parallelizable batch version, using `batch=F`.
+
+#### How to activate the SIMD support? (i.e. how to get even more speed?)
+
+Additionally, EmbedSOM has support for SIMD-assisted computation of both SOM and the embedding. If your CPU can work with SSE4 instructions (almost every `amd64` (a.k.a. `x64` a.k.a. `x86_64`) CPU built after around 2013 can do that), just tell R to compile your code with correct C++ flags, and SOM+EmbedSOM computation should get a bit faster! (in fact, usually at least around 3x faster, depending on the CPU and dataset shape).
+
+First, add a correct line to the R `Makevars` config file:
+```sh
+ $ cat ~/.R/Makevars
+CXXFLAGS += -O3 -march=native
+```
+
+After reinstalling EmbedSOM, SIMD code will be used by default. Note that only the SOM functions from EmbedSOM are affected, i.e. you will need to use `EmbedSOM::SOM` to get this speedup. `FlowSOM::BuildSOM` will not get accelerated.

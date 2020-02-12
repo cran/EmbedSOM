@@ -5,18 +5,17 @@
 \title{Export a data frame for plotting with marker intensities and density.}
 \usage{
 PlotData(embed, fsom, data = fsom$data, cols, names, normalize = cols,
-  qlimit = 0, qlow = qlimit, qhigh = 1 - qlimit, pow = 0,
-  vf = PlotId, density = "Density", densBins = 256,
-  densLimit = NULL, fdens = sqrt)
+  pow = 0, sds = 1, vf = PlotId, density = "Density",
+  densBins = 256, densLimit = NULL, fdens = sqrt)
 }
 \arguments{
 \item{embed, fsom, data, cols}{The embedding data, columns to select}
 
 \item{names}{Column names for output}
 
-\item{normalize}{List of columns to normalize using NormalizeColor, default all}
+\item{normalize}{List of columns to normalize using \code{\link[=NormalizeColor]{NormalizeColor()}}, default all}
 
-\item{qlimit, qlow, qhigh, pow}{Parameters for the normalization}
+\item{pow, sds}{Parameters for the normalization}
 
 \item{vf}{Custom value-transforming function}
 
