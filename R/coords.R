@@ -202,7 +202,7 @@ MSTCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=
 #'
 #' This uses a complete graph on the map codebook, which brings overcrowding
 #' problems. It is therefore useful to transform the distances for avoiding that
-#' (e.g. by exponentiating them slightly).
+#' (e.g. by exponentiating them slightly using distFn function).
 #'
 #' @param dim Dimension of the result (passed to `layoutFn`)
 #' @param dist.method The method to compute distances, passed to [stats::dist()] as parameter `method`
@@ -217,39 +217,36 @@ GraphCoords <- function(dim=NULL, dist.method=NULL, distFn=function(x)x, layoutF
     map$grid <- layoutFn(
       dim=dim,
       igraph::graph_from_adjacency_matrix(mode='undirected', weighted=T,
-        distFn(as.matrix(stats::dist(map$codes)))))
+        distFn(as.matrix(stats::dist(map$codes, method=dist.method)))))
     map
   }
 }
 
 #' Add KNN-topology-based embedding coordinates to the map
 #'
-#' Internally, this uses [FNN::get.knn()] to compute the k-neighborhoods. That
-#' function only supports Euclidean metric, therefore `kNNCoords` throws a warning whenever
-#' a different metric is used.
+#' Internally, this does not use [FNN::get.knn()] anymore.
 #'
 #' @param k Size of the neighborhoods (default 4)
 #' @param dim Dimension of the result (passed to `layoutFn`)
+#' @param dist.method The method to compute distances, passed to [stats::dist()] as parameter `method`
 #' @param distFn Custom transformation function of the distance matrix
 #' @param layoutFn iGraph-compatible graph layouting function (default [igraph::layout_with_kk])
 #' @return a function that transforms the map, usable as `coordsFn` parameter
 #' @export
-kNNCoords <- function(k=4, dim=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
+kNNCoords <- function(k=4, dim=NULL, dist.method=NULL, distFn=function(x)x, layoutFn=igraph::layout_with_kk) {
   function(map) {
-    if(!is.null(map$distf) && map$distf != 2)
-      warning("kNNCoords uses Euclidean neighborhoods, which may not match 'distf' in the map object!")
-
     dim <- guessDim(dim, map)
+    dist.method <- guessDistMethod(dist.method, map)
+    dist.matrix <- as.matrix(stats::dist(map$codes, method=dist.method))
     n <- nrow(map$codes)
-    kns <- cbind(rep(1:n, each=k), as.vector(t(FNN::get.knn(map$codes, k=k)$nn.index)))
+    kns <- cbind(rep(1:n, each=k), as.vector(apply(dist.matrix, 1, function(x) order(x)[2:(k+1)])))
     adj <- matrix(0, n, n)
     adj[kns[,2]+n*(kns[,1]-1)] <- 1
     adj[kns[,1]+n*(kns[,2]-1)] <- 1
-    adj <- adj*(distFn(as.matrix(stats::dist(map$codes, method='euclidean'))))
+    adj <- adj*(distFn(dist.matrix))
 
     map$grid <- layoutFn(dim=dim,
       igraph::graph_from_adjacency_matrix(adj, mode='undirected', weighted=T))
     map
   }
 }
-
